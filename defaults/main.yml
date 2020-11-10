@@ -1,0 +1,10 @@
+---
+archive_path: "/tmp"
+agent_archive: "buildAgentFull.zip"
+teamcity_server_url: "http://localhost:8111"
+service_path: "/opt/teamcity-agent"
+teamcity_group: teamcity
+teamcity_agent_user: teamcity_agent
+teamcity_agent_service: teamcity-agent
+teamcity_agent_port: 9090
+teamcity_agent_index: 1

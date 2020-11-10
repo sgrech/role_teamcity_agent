@@ -1,0 +1,77 @@
+---
+- name: Check vars
+  debug:
+    msg: "Setting up service {{ teamcity_agent_service }} for {{ teamcity_agent_user }} on port {{ teamcity_agent_port }}"
+
+- name: Add prequisite packages
+  apt:
+    name:
+      - unzip
+
+- name: Add teamcity agent user
+  user:
+    name: "{{ teamcity_agent_user }}"
+    group: "{{ teamcity_group }}"
+
+- name: Add service path
+  file:
+    path: "{{ service_path }}"
+    state: directory
+    owner: "{{ teamcity_agent_user }}"
+    group: "{{ teamcity_group }}"
+
+- name: Check teamcity agent already installed
+  stat:
+    path: "{{ service_path }}/bin"
+  register: teamcity_agent
+
+- name: Unpack teamcity agent
+  unarchive:
+    src: "{{ agent_archive_host_path }}"
+    dest: "{{ service_path }}"
+    owner: "{{ teamcity_agent_user }}"
+    group: "{{ teamcity_group }}"
+  when: not teamcity_agent.stat.exists
+
+- name: Add logs directory
+  file:
+    path: "{{ service_path }}/logs"
+    owner: "{{ teamcity_agent_user }}"
+    group: "{{ teamcity_group }}"
+    state: directory
+
+- name: Attempt to change ownership on directory
+  file:
+    path: "{{ service_path }}"
+    state: directory
+    recurse: yes
+    owner: "{{ teamcity_agent_user }}"
+    group: "{{ teamcity_group }}"
+
+- name: Add buildAgent properties file
+  copy:
+    remote_src: yes
+    src: "{{ service_path }}/conf/buildAgent.dist.properties"
+    dest: "{{ service_path }}/conf/buildAgent.properties"
+    owner: "{{ teamcity_agent_user }}"
+    group: "{{ teamcity_group }}"
+
+- name: Add buildAgent configuration
+  lineinfile:
+    path: "{{ service_path }}/conf/buildAgent.properties"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  loop:
+    - { regexp: "^name=", line: "name={{ teamcity_agent_service }}" }
+    - { regexp: "^ownPort", line: "ownPort={{ teamcity_agent_port }}" }
+
+- name: Create service definition
+  template:
+    src: teamcity-agent.service.j2
+    dest: "/lib/systemd/system/{{ teamcity_agent_service }}.service"
+
+- name: Enable teamcity agent service
+  service:
+    name: "{{ teamcity_agent_service }}"
+    state: started
+    enabled: yes

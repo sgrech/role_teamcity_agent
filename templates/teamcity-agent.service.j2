@@ -1,0 +1,20 @@
+[Unit]
+Description=TeamCity Build Agent {{ teamcity_agent_index }}
+After=network.target
+
+[Service]
+Type=oneshot
+
+User={{ teamcity_agent_user }}
+Group={{ teamcity_group }}
+
+PIDFile={{ service_path }}/logs/teamcity.pid
+ExecStart={{ service_path }}/bin/agent.sh start
+ExecStop={{ service_path }}/bin/agent.sh stop
+
+RemainAfterExit=yes
+
+SuccessExitStatus=0 143
+
+[Install]
+WantedBy=multi-user.target
