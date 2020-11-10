@@ -55,6 +55,7 @@
     dest: "{{ service_path }}/conf/buildAgent.properties"
     owner: "{{ teamcity_agent_user }}"
     group: "{{ teamcity_group }}"
+    force: no
 
 - name: Add buildAgent configuration
   lineinfile:
