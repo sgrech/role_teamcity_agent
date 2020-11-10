@@ -1,38 +1,71 @@
 Role Name
 =========
 
-A brief description of the role goes here.
+Ansible role used to install teamcity agent as a service.
 
 Requirements
 ------------
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+Needs teamcity server running as a service, see [sgrech.role_teamcity](https://galaxy.ansible.com/sgrech/role_teamcity).
+Also requires agent repository `buildAgentFull.zip` downloaded from running teamcity server instance.
+The playbook using this role also needs to define `agent_archive_host_path` variable to define where
+the build agent archive is stored on the host.
 
 Role Variables
 --------------
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+The following variables can be overridden to customize service installation
+
+- archive_path: "/tmp"
+- agent_archive: "buildAgentFull.zip"
+- teamcity_server_url: "http://localhost:8111"
+- service_path: "/opt/teamcity-agent"
+- teamcity_group: teamcity
+- teamcity_agent_user: teamcity_agent
+- teamcity_agent_service: teamcity-agent
+- teamcity_agent_port: 9090
+- teamcity_agent_index: 1
 
 Dependencies
 ------------
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+sgrech.role_teamcity
 
 Example Playbook
 ----------------
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+```yml
+---
+- hosts: any
+  become: yes
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+  vars:
+    teamcity_user: teamcity
+    teamcity_group: teamcity
+    agent_archive_host_path: ~/Software/buildAgentFull.zip
+
+  tasks:
+    - import_role:
+        name: sgrech.role_teamcity
+      tags: teamcity_server
+
+    - import_role:
+        name: sgrech.role_teamcity_agent
+      vars:
+        teamcity_agent_user: teamcity_agent_1
+        teamcity_agent_service: teamcity-agent-1
+        teamcity_agent_port: 9091
+        service_path: /opt/teamcity-agent-1
+        teamcity_agent_index: 1
+      tags: teamcity_agent
+```  
 
 License
 -------
 
-BSD
+GPL
 
 Author Information
 ------------------
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+TODO
